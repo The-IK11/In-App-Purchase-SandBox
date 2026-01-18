@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iap_sandbox/data/revenuecat_service.dart';
 import 'package:iap_sandbox/presentation/subscription_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await RevenuecatService().init();
   runApp(const MyApp());
 }
 

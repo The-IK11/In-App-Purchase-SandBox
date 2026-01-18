@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iap_sandbox/data/revenuecat_service.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -34,7 +35,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
       }
     });
   }
-
+final RevenuecatService _revenuecatService = RevenuecatService();
   @override
   void dispose() {
     _badgeAnimationController.dispose();
@@ -43,6 +44,29 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
 
   void _onBadgeTap() {
     _badgeAnimationController.forward(from: 0.0);
+  }
+ bool loading = false;
+
+  Future<void> _buyPremium() async {
+    setState(() => loading = true);
+
+    try {
+      final success =
+          await _revenuecatService.purchasePremium();
+
+      if (success) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Premium unlocked 🎉")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      setState(() => loading = false);
+    }
   }
 
   @override
@@ -559,10 +583,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
         ],
       ),
       child: ElevatedButton(
-        onPressed: () {
-          // Handle subscription
-          _showPurchaseDialog('$planName Subscription', planPrice);
-        },
+        onPressed: loading ? null : _buyPremium,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -570,21 +591,30 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
             borderRadius: BorderRadius.circular(28),
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.rocket_launch, color: Colors.white),
-            const SizedBox(width: 8),
-            Text(
-              'Subscribe $planName - $planPrice',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        child: loading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.rocket_launch, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Subscribe $planName - $planPrice',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
